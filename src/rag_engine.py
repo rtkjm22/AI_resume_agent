@@ -30,7 +30,8 @@ template = """
 【質問】
 {question}
 
-※ 文書に記載がないことについては「わかりません」と答えてください。
+※ 履歴書に記載がない場合は「わかりません」と答えてください。
+※ 履歴書に関係ない場合は「関係なし」と答えてください。
 """
 prompt = PromptTemplate(input_variables=["context", "question"], template=template)
 
@@ -47,17 +48,27 @@ qa_chain = RetrievalQA.from_chain_type(
     chain_type_kwargs={"prompt": prompt},
 )
 
+
 def search_online(query: str) -> str:
     with DDGS() as ddgs:
         results = ddgs.text(query, max_results=3)
         return "\n".join([r["body"] for r in results])
 
+
 def answer_query(query: str) -> str:
+    print(f"Query: {query}")
+
     answer = qa_chain.invoke(query)
+    result = answer["result"]
 
-    print(answer)
-    # if "わかりません" in answer or "知りません" in answer:
-    #     extra = search_online(query)
-    #     return f"{answer}\n\n---\n外部検索より補足:\n{extra}"
+    if is_related_answer(result):
+        return result
+    else:
+        print("RAGでは答えられなかったのでDuckDuckGoで検索")
+        online_result = search_online(query)
+        return f"質問の内容は履歴書に記載がないため、外部検索結果を参考にお答えします：\n\n{online_result}"
 
-    return answer["result"]
+
+# 履歴書に関係ない or 書いてないと判断される場合を判定
+def is_related_answer(result: str) -> bool:
+    return not any(keyword in result for keyword in ["わかりません", "関係なし"])
