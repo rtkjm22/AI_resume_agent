@@ -24,7 +24,7 @@ retriever = FAISS.load_local(
     "./faiss_index",
     HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2"),
     allow_dangerous_deserialization=True
-).as_retriever(search_kwargs={"k": 3})
+).as_retriever(search_kwargs={"k": 10})
 
 qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=retriever, chain_type="stuff")
 
@@ -34,8 +34,6 @@ def search_online(query: str) -> str:
         return "\n".join([r["body"] for r in results])
 
 def answer_query(query: str) -> str:
-    docs = retriever.get_relevant_documents(query)
-
     answer = qa_chain.invoke(query)
 
     print(answer)
