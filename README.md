@@ -8,7 +8,7 @@
 
 主な機能は以下内容になります。
 
-- **ELYZA Japanese Llama 2 7B** モデル（`gguf`形式）をローカル実行
+- **ELYZA-japanese-Llama-2-7b-instruct-q4_K_M** モデル（`gguf`形式）をローカル実行
 - 履歴書（Markdown やテキスト）を **FAISS + HuggingFaceEmbeddings** でベクトル化し、意味ベースで検索
 - **LangChain の RetrievalQA チェーン** により、ドキュメントをもとにした回答を自動生成
 - 質問に対して履歴書に情報がない場合は、**DuckDuckGo 検索で外部回答**も自動実行
