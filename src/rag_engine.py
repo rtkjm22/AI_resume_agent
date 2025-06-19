@@ -1,13 +1,14 @@
 from langchain_community.llms import LlamaCpp
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
 from duckduckgo_search import DDGS
 from huggingface_hub import hf_hub_download
 
 model_path = hf_hub_download(
     repo_id="mmnga/ELYZA-japanese-Llama-2-7b-instruct-gguf",
-    filename="ELYZA-japanese-Llama-2-7b-instruct-q4_K_M.gguf"
+    filename="ELYZA-japanese-Llama-2-7b-instruct-q4_K_M.gguf",
 )
 
 llm = LlamaCpp(
@@ -20,13 +21,31 @@ llm = LlamaCpp(
     verbose=True,
 )
 
+template = """
+以下の文章を参考にして、質問に対して日本語で簡潔かつ正確に答えてください。
+
+【参考文書】
+{context}
+
+【質問】
+{question}
+
+※ 文書に記載がないことについては「わかりません」と答えてください。
+"""
+prompt = PromptTemplate(input_variables=["context", "question"], template=template)
+
 retriever = FAISS.load_local(
     "./faiss_index",
     HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2"),
-    allow_dangerous_deserialization=True
-).as_retriever(search_kwargs={"k": 10})
+    allow_dangerous_deserialization=True,
+).as_retriever(search_kwargs={"k": 6})
 
-qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=retriever, chain_type="stuff")
+qa_chain = RetrievalQA.from_chain_type(
+    llm=llm,
+    retriever=retriever,
+    chain_type="stuff",
+    chain_type_kwargs={"prompt": prompt},
+)
 
 def search_online(query: str) -> str:
     with DDGS() as ddgs:
