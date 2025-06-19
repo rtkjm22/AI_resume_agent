@@ -8,8 +8,8 @@ def build_vectorstore(filepath: str, persist_path: str = "./faiss_index"):
     docs = loader.load()
     
     text_splitter = RecursiveCharacterTextSplitter(
-      chunk_size=256,
-      chunk_overlap=20,
+      chunk_size=512,
+      chunk_overlap=50,
     )
     split_docs = text_splitter.split_documents(docs)
 
